@@ -1,0 +1,1 @@
+Machine learning model for trash segregation based on photos
