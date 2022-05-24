@@ -101,12 +101,3 @@ if __name__ == "__main__":
                             model = create_model(hyperparameters)
                             train_model(model, hyperparameters)
                             session_num += 1
-                            break
-                        break
-                    break
-                break
-            break
-        break
-
-
-
