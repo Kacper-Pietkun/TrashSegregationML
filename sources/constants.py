@@ -8,14 +8,17 @@ ROOT_DIR = Path(__file__).parent.parent
 PATH_RAW_DATASET_USERS = r'resources\loaded_datasets\dataset_from_users'
 PATH_RAW_DATASET_PUBLIC = r'resources\loaded_datasets\dataset_public'
 PATH_RAW_DATASET_CRAWLER = r'resources\loaded_datasets\dataset_webcrawler'
+PATH_RAW_DATASET_SIMILAR = r'resources\loaded_datasets\dataset_similar_to_user'
 PATH_TENSORBOARD_LOGS = r'tensorboard_logs'
 PATH_LOCAL_SAVED_DATASET = r'resources\saved_datasets'
+PATH_BEST_MODELS = r'resources\best_models'
 
 
 # Names of saved (pickled) datasets
 DATASET_PUBLIC = 'dataset_public.dat'
 DATASET_USERS = 'dataset_users.dat'
 DATASET_CRAWLER = 'dataset_webcrawler.dat'
+DATASET_SIMILAR = 'dataset_similar.dat'
 
 
 # Names of the trash folders

@@ -8,7 +8,7 @@ from dataset_handler import ImagesDataset
 
 
 if __name__ == "__main__":
-    datasets_names = [constants.DATASET_PUBLIC, constants.DATASET_USERS, constants.DATASET_CRAWLER]
+    datasets_names = [constants.DATASET_PUBLIC, constants.DATASET_USERS, constants.DATASET_CRAWLER, constants.DATASET_SIMILAR]
     for name in datasets_names:
         path = os.path.join(constants.ROOT_DIR, constants.PATH_LOCAL_SAVED_DATASET)
         full_path = os.path.join(path, name)

@@ -23,6 +23,11 @@ def save_dataset(dataset, path, dataset_name):
 
 
 if __name__ == "__main__":
+    print('load similar dataset...')
+    dataset_public = load_dataset(constants.PATH_RAW_DATASET_SIMILAR)
+    print('save similar dataset...')
+    save_dataset(dataset_public, constants.PATH_LOCAL_SAVED_DATASET, constants.DATASET_SIMILAR)
+
     print('load public dataset...')
     dataset_public = load_dataset(constants.PATH_RAW_DATASET_PUBLIC)
     print('save public dataset...')
