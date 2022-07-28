@@ -40,7 +40,7 @@ class ImagesDataset:
         Loaded images are normalized, scaled and saved to an array in RGB format.
 
         Args:
-          dir_path (str): name of the directory whre image classes are located.
+          dir_path (str): name of the directory where image classes are located.
           image_height (int): height of the image after scaling.
           image_width (int): width of the image after scaling.
           random_state (int): seed to random number generator.
