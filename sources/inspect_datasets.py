@@ -8,10 +8,11 @@ from dataset_handler import ImagesDataset
 
 
 if __name__ == "__main__":
-    datasets_names = [constants.DATASET_PUBLIC, constants.DATASET_USERS, constants.DATASET_CRAWLER, constants.DATASET_SIMILAR]
+    datasets_names = [constants.DATASET_GARYTHUNG, constants.DATASET_SEARCH_ENGINE, constants.DATASET_SIMILAR,
+                      constants.DATASET_TACO, constants.DATASET_TEST]
     for name in datasets_names:
         path = os.path.join(constants.ROOT_DIR, constants.PATH_LOCAL_SAVED_DATASET)
-        full_path = os.path.join(path, name)
+        full_path = os.path.join(path, name + constants.DATASET_EXTENSION)
         dataset = ImagesDataset.load_saved_dataset(full_path)
         print(name)
         dataset.info()
