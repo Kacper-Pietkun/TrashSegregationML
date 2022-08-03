@@ -1,4 +1,4 @@
-import constants
+from sources.scripts import constants
 import os
 import tensorflow as tf
 import numpy as np
