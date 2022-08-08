@@ -7,7 +7,7 @@ class MobileNetT:
 
     def __init__(self, hyperparameters):
         """
-        Class for preparing  MobileNet for training
+        Class for preparing MobileNet for training
 
         :param hyperparameters: all the necessary hyperparameters for MobileNet
         """

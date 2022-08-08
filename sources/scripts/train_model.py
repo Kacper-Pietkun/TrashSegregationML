@@ -2,15 +2,16 @@
 # Training model based on given model with given hyperparameters
 # -----------------------------------------------------------
 
+import os
 from sources.scripts import constants as cs
 from sources.classes.training import Training
 
 if __name__ == "__main__":
     args = {
         'gpu': True,
-        'log_dir_name': '4_aug_train_similar_test_aug_users_aftere_refactor',
+        'log_dir_name': os.path.join('MobileNet', '4_aug_train_similar_taco_test_users'),
         'model': 'MobileNet',
-        'train_data': ['augmented_similar'],
+        'train_data': ['augmented_similar', 'augmented_taco'],
         'val_data': ['raw_user'],
         'image': {
             'height': cs.IMAGE_HEIGHT,
