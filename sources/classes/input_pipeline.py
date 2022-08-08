@@ -20,20 +20,36 @@ class InputPipeline:
         :param image_height: height of images in the dataset
         """
         directory_path = pathlib.Path(directory_path)
-        x  =  str(directory_path/'*/*')
         self.dataset = tf.data.Dataset.list_files(str(directory_path/'*/*'), shuffle=False)
         self.dataset_name = str(directory_path).split("\\")[-1]
         self.batch_size = batch_size
         self.image_width = image_width
         self.image_height = image_height
 
-        image_count_whole = len(list(directory_path.glob('*/*.jpg')))
-        self.dataset = self.dataset.shuffle(image_count_whole, reshuffle_each_iteration=False)
+        self.image_count_whole = len(list(directory_path.glob('*/*.jpg')))
+        self.dataset = self.dataset.shuffle(self.image_count_whole, reshuffle_each_iteration=False)
         self.class_names = np.array(sorted([item.name for item in directory_path.glob('*')]))
         self.image_count_by_class = np.array([item for item in np.array([len(list(directory_path.glob(class_name + "/*.jpg"))) for class_name in self.class_names])])
         # create a dataset of image, label pairs
         self.map(self.process_path)
         self.configure_for_performance()
+
+    def concatenate_pipelines(self, pipeline2):
+        """
+        Concatenate two pipelines - datasets (tf.data.dataset)
+
+        :param pipeline2: pipeline that will be concatenated with this pipeline
+        """
+        self.dataset = self.dataset.concatenate(pipeline2.dataset)
+        self.dataset_name += f" - {pipeline2.dataset_name}"
+        if self.batch_size != pipeline2.batch_size or\
+                self.image_width != pipeline2.image_width or\
+                self.image_height != pipeline2.image_height or\
+                self.class_names.sort() != pipeline2.class_names.sort():
+            raise Exception("Cannot concatenate two pipelines with different properties")
+        self.image_count_whole += pipeline2.image_count_whole
+        self.dataset = self.dataset.shuffle(self.image_count_whole, reshuffle_each_iteration=False)
+        self.image_count_by_class = list(map(lambda a, b: a + b, self.image_count_by_class, pipeline2.image_count_by_class))
 
     def print_text_info_about_dataset(self):
         """
