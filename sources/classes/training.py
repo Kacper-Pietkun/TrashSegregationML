@@ -8,6 +8,7 @@ from tensorflow.keras.callbacks import TensorBoard
 from tensorboard.plugins.hparams import api as hp
 from datetime import datetime
 from sources.classes.mobile_net import MobileNetT
+from sources.classes.mobile_net_v2 import MobileNetV2T
 from sources.scripts import constants as cs
 import os
 
@@ -61,6 +62,9 @@ class Training:
         if model_name == "MobileNet":
             mobile_net = MobileNetT(hyperparameters)
             return MobileNetT, mobile_net.model
+        elif model_name == "MobileNetV2":
+            mobile_net_v2 = MobileNetV2T(hyperparameters)
+            return MobileNetV2T, mobile_net_v2.model
         raise Exception(f"Model {model_name} is not recognized")
 
     def get_actual_input_pipeline(self, dataset_path, batch_size, image_properties):
