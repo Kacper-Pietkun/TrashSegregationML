@@ -29,13 +29,13 @@ class AugmentationPipeline:
         self.pipeline.random_brightness(probability=0.5, min_factor=0.5, max_factor=1.5)
 
         self.images_original_count = self.get_number_of_original_images()
+        self.images_number_after_aug = self.get_number_of_augmented_photos(class_name)
 
     def augment(self):
         """
         Start augmentation of the dataset
         """
-        # self.pipeline.sample(self.get_number_of_augmented_photos())
-        self.pipeline.sample(1000)
+        self.pipeline.sample(self.images_number_after_aug)
 
     def get_number_of_original_images(self):
         """
@@ -47,14 +47,19 @@ class AugmentationPipeline:
                 counter += 1
         return counter
 
-    def get_number_of_augmented_photos(self):
+    def get_number_of_augmented_photos(self, class_name):
         """
         Estimate target and final number of images after augmentation
+
+        :param class_name: class directory name
         """
-        thresholds = np.arange(100, 1001, 100)
-        idx = len(thresholds) - 1
-        while idx >= 0:
-            if thresholds[idx] / self.images_original_count < 15:
-                return int(thresholds[idx] / self.images_original_count) * self.images_original_count
-            idx -= 1
-        return 15 * self.images_original_count
+        multiplier_based_on_class = {
+            'bio': 5,
+            'glass': 5,
+            'mixed': 5,
+            'paper': 4,
+            'plastic_metal': 2
+        }
+        multiplier = multiplier_based_on_class[class_name]
+        number = self.images_original_count * multiplier if self.images_original_count <= 400 else self.images_original_count
+        return number
