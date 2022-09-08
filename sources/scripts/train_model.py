@@ -12,46 +12,26 @@ if __name__ == "__main__":
 
     args1 = {
         'gpu': True,
-        'log_dir_name': os.path.join('MobileNetV2', '9_aug_train_all'),
+        'log_dir_name': os.path.join('MobileNetV2', 'test'),
         'model': 'MobileNetV2',
-        'train_data': ['augmented_similar', 'augmented_taco', 'augmented_search_engine', 'augmented_garythung'],
+        'train_data': ['augmented_similar'],  # , 'augmented_taco', 'augmented_search_engine', 'augmented_garythung'
         'val_data': ['raw_user'],
         'image': {
             'height': cs.IMAGE_HEIGHT,
             'width': cs.IMAGE_WIDTH
         },
-        'hp': {
-            'epochs': [10],
-            'base_number_of_layers': [155, 154, 153, 152, 151],
-            'not_trainable_number_of_layers': [100, 108, 116, 124, 132],
-            'learning_rate': [0.001, 0.01, 0.005],
-            'dropout_rate': [0.1],
-            'batch_size': [32, 48, 64, 100]
+        'max_trials': 3,
+        'hp_range': {
+            'epochs': 2,
+            'base_number_of_layers':            {'min': 151,    'max': 155,     'step': 1},
+            'not_trainable_number_of_layers':   {'min': 100,    'max': 132,     'step': 1},
+            'learning_rate':                    {'min': -6,     'max': -2,      'step': 1},
+            'dropout_rate':                     {'min': 0,      'max': 0.6,     'step': 0.05},
+            'batch_size':                       {'min': 32,     'max': 64,     'step': 32}
         }
     }
     args.append(args1)
 
-    args2 = {
-        'gpu': True,
-        'log_dir_name': os.path.join('MobileNet', '9_aug_train_all'),
-        'model': 'MobileNet',
-        'train_data': ['augmented_similar', 'augmented_taco', 'augmented_search_engine', 'augmented_garythung'],
-        'val_data': ['raw_user'],
-        'image': {
-            'height': cs.IMAGE_HEIGHT,
-            'width': cs.IMAGE_WIDTH
-        },
-        'hp': {
-            'epochs': [5],
-            'base_number_of_layers': [89, 88, 87, 86],
-            'not_trainable_number_of_layers': [16, 24, 32, 48, 64],
-            'learning_rate': [0.00001, 0.0005, 0.0001, 0.005, 0.001, 0.01],
-            'dropout_rate': [0.1],
-            'batch_size': [32, 48, 64, 100]
-        }
-    }
-    args.append(args2)
-
     for arg in args:
         training = Training(arg)
-        training.start()
+        training.run_training()

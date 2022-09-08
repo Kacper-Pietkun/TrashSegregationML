@@ -5,28 +5,44 @@ from tensorflow.keras.layers import Dense, Reshape
 
 class MobileNetV2T:
 
-    def __init__(self, hyperparameters):
+    def __init__(self, hp, hp_range):
         """
         Class for preparing MobileNetV2 for training
 
-        :param hyperparameters: all the necessary hyperparameters for MobileNetV2
+        :param hp: parameter for keras tuner (necessary for RandomSearch)
+        :param hp_range: hyperparameters range for RandomSearch
         """
-        # number of layers for MobileNetV2 is equal to 156, so hyperparameters like base_no_of_layers and
-        # not_trainable_no_of_layers must be smaller than 156
-        if hyperparameters['base_no_of_layers'] >= 156 or hyperparameters['not_trainable_no_of_layers'] >= 156:
+        self.no_of_layers = 156
+        base_number_of_layers = hp.Int("base_number_of_layers",
+                                       hp_range["base_number_of_layers"]["min"],
+                                       hp_range["base_number_of_layers"]["max"],
+                                       hp_range["base_number_of_layers"]["step"])
+        not_trainable_number_of_layers = hp.Int("not_trainable_number_of_layers",
+                                                hp_range["not_trainable_number_of_layers"]["min"],
+                                                hp_range["not_trainable_number_of_layers"]["max"],
+                                                hp_range["not_trainable_number_of_layers"]["step"])
+        learning_rate = hp.Float("learning_rate",
+                                 hp_range["learning_rate"]["min"],
+                                 hp_range["learning_rate"]["max"],
+                                 hp_range["learning_rate"]["step"])
+        dropout_rate = hp.Float("dropout_rate",
+                                hp_range["dropout_rate"]["min"],
+                                hp_range["dropout_rate"]["max"],
+                                hp_range["dropout_rate"]["step"])
+        if base_number_of_layers >= 156 or not_trainable_number_of_layers >= 156:
             raise BaseException('base_no_of_layers and not_trainable_no_of_layers hyperparameters must be less than 156 for MobileNetV2')
         self.model = tf.keras.applications.mobilenet_v2.MobileNetV2()
-        mobile_net_layers = self.model.layers[hyperparameters['base_no_of_layers']].output
+        mobile_net_layers = self.model.layers[base_number_of_layers].output
         output = Dense(units=5, activation='softmax')(mobile_net_layers)
         output = Reshape((-1,), input_shape=(1, 1, 5,))(output)
         self.model = Model(inputs=self.model.input, outputs=output)
-        for layer in self.model.layers[:hyperparameters['not_trainable_no_of_layers']]:
+        for layer in self.model.layers[:not_trainable_number_of_layers]:
             layer.trainable = False
         for layer in self.model.layers:
             if isinstance(layer, tf.keras.layers.Dropout):
-                layer.rate = hyperparameters['dropout_rate']
+                layer.rate = dropout_rate
         self.model.compile(
-            optimizer=tf.keras.optimizers.Adam(learning_rate=hyperparameters['learning_rate']),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
             loss='sparse_categorical_crossentropy',
             metrics=['accuracy']
         )
