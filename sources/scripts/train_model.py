@@ -21,13 +21,14 @@ if __name__ == "__main__":
             'width': cs.IMAGE_WIDTH
         },
         'max_trials': 3,
+        'executions_per_trial': 1,
         'hp_range': {
-            'epochs': 2,
-            'base_number_of_layers':            {'min': 151,    'max': 155,     'step': 1},
+            'epochs':                           {'fixed': 2},
+            'batch_size':                       {'fixed': 32},
+            'learning_rate':                    {'choices': [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]},
             'not_trainable_number_of_layers':   {'min': 100,    'max': 132,     'step': 1},
-            'learning_rate':                    {'min': -6,     'max': -2,      'step': 1},
             'dropout_rate':                     {'min': 0,      'max': 0.6,     'step': 0.05},
-            'batch_size':                       {'min': 32,     'max': 64,     'step': 32}
+
         }
     }
     args.append(args1)

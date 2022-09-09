@@ -34,6 +34,7 @@ class Training:
             'width': args['image']['width']
         }
         self.max_trials = args['max_trials']
+        self.executions_per_trial = args['executions_per_trial']
         self.log_dir_name = args['log_dir_name']
         if args['gpu'] is True:
             self.configure_training_for_gpu()
@@ -76,7 +77,7 @@ class Training:
         :param dataset_path: path to the dataset
         """
         path = os.path.join(cs.ROOT_DIR, dataset_path)
-        pipeline = InputPipeline(path, self.hp_range['batch_size']['max'],
+        pipeline = InputPipeline(path, self.hp_range['batch_size']["fixed"],
                                  self.image_properties['width'],
                                  self.image_properties['height'])
         return pipeline
@@ -115,28 +116,7 @@ class Training:
             input_pipelines[0].concatenate_pipelines(input_pipelines[i])
         return input_pipelines[0]
 
-    def run_training(self):
-        """
-        Carry out one training process (one from all of the combinations, that are run by start() function)
-        """
-        model_class = self.get_model_class()
-        input_pipeline_train = self.get_input_pipeline(self.train_data_names)
-        input_pipeline_val = self.get_input_pipeline(self.val_data_names)
-        input_pipeline_train.map(model_class.preprocess_input_pipeline)
-        input_pipeline_val.map(model_class.preprocess_input_pipeline)
-
-        log_dir = os.path.join(cs.ROOT_DIR, cs.PATH_TENSORBOARD_LOGS, self.log_dir_name, "raw",
-                               datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
-        tuner = keras_tuner.RandomSearch(
-            self.build_model,
-            max_trials=self.max_trials,
-            executions_per_trial=1,
-            objective="val_accuracy",
-            directory=log_dir
-        )
-        self.train_model(tuner, input_pipeline_train, input_pipeline_val)
-
-    def train_model(self, tuner, pipeline_train, pipeline_val):
+    def train_model(self, tuner, pipeline_train, pipeline_val, log_dor_tb):
         """
         Actual training after creating model and input pipelines
 
@@ -144,15 +124,39 @@ class Training:
         :param pipeline_train: input pipeline for training
         :param pipeline_val: input pipeline for validation
         """
-        log_dir = os.path.join(cs.ROOT_DIR, cs.PATH_TENSORBOARD_LOGS, self.log_dir_name,
-                               datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
-        tensorboard_callback = TensorBoard(log_dir=log_dir)
+        tensorboard_callback = TensorBoard(log_dir=log_dor_tb)
         early_stop_callback = EarlyStopping(monitor='val_loss', min_delta=0.1, patience=10, verbose=1)
         callbacks = [tensorboard_callback, early_stop_callback]
         tuner.search(
             pipeline_train.dataset,
             validation_data=pipeline_val.dataset,
-            epochs=self.hp_range["epochs"],
-            batch_size=self.hp_range["batch_size"]["max"],
+            epochs=self.hp_range["epochs"]["fixed"],
+            batch_size=self.hp_range["batch_size"]["fixed"],
             callbacks=callbacks
         )
+
+    def run_training(self):
+        """
+        Carry out one training process (one from all of the combinations, that are run by start() function)
+        """
+        model_class = self.get_model_class()
+
+        input_pipeline_train = self.get_input_pipeline(self.train_data_names)
+        input_pipeline_train.map(model_class.preprocess_input_pipeline)
+
+        input_pipeline_val = self.get_input_pipeline(self.val_data_names)
+        input_pipeline_val.map(model_class.preprocess_input_pipeline)
+
+        log_dir_json = os.path.join(cs.ROOT_DIR, cs.PATH_TENSORBOARD_LOGS, self.log_dir_name,
+                                    datetime.now().strftime("%Y_%m_%d-%H_%M_%S") + "raw")
+        log_dor_tb = os.path.join(cs.ROOT_DIR, cs.PATH_TENSORBOARD_LOGS, self.log_dir_name,
+                                  datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
+        tuner = keras_tuner.RandomSearch(
+            self.build_model,
+            max_trials=self.max_trials,
+            executions_per_trial=self.executions_per_trial,
+            objective="val_accuracy",
+            directory=log_dir_json,
+            seed=42
+        )
+        self.train_model(tuner, input_pipeline_train, input_pipeline_val, log_dor_tb)
