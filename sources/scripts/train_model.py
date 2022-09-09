@@ -7,13 +7,12 @@ from sources.scripts import constants as cs
 from sources.classes.training import Training
 
 if __name__ == "__main__":
-
     args = []
 
     args1 = {
         'gpu': True,
-        'log_dir_name': os.path.join('MobileNetV2', 'test'),
-        'model': 'MobileNetV2',
+        'log_dir_name': os.path.join('MobileNet', 'test'),
+        'model': 'MobileNet',
         'train_data': ['augmented_similar'],  # , 'augmented_taco', 'augmented_search_engine', 'augmented_garythung'
         'val_data': ['raw_user'],
         'image': {
@@ -23,12 +22,15 @@ if __name__ == "__main__":
         'max_trials': 3,
         'executions_per_trial': 1,
         'hp_range': {
-            'epochs':                           {'fixed': 2},
-            'batch_size':                       {'fixed': 32},
-            'learning_rate':                    {'choices': [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]},
-            'not_trainable_number_of_layers':   {'min': 100,    'max': 132,     'step': 1},
+            'alpha':                            {'fixed': 1.0},
+            'depth_multiplier':                 {'fixed': 1},
+            'epochs':                           {'fixed': 100},
+            'batch_size':                       {'fixed': 64},
+            'learning_rate_top':                {'choices': [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]},
+            'learning_rate_whole':              {'choices': [1e-6, 1e-5]},
+            'freeze_layers':                    {'choices': [True, False]},
+            'not_trainable_number_of_layers':   {'choices': [49, 55, 61, 67, 73, 80, 86]},
             'dropout_rate':                     {'min': 0,      'max': 0.6,     'step': 0.05},
-
         }
     }
     args.append(args1)

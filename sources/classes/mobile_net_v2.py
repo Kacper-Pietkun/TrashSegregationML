@@ -6,14 +6,13 @@ from tensorflow.keras.layers import Dense, Reshape
 
 class MobileNetV2T(BaseModel):
 
-    def __init__(self, hp, hp_range):
+    def __init__(self, hp_range):
         """
         Class for preparing MobileNetV2 for training
 
-        :param hp: parameter for keras tuner (necessary for RandomSearch)
         :param hp_range: hyperparameters range for RandomSearch
         """
-        super().__init__(hp, hp_range)
+        super().__init__(hp_range)
         self.no_of_layers = 156
         if self.not_trainable_number_of_layers >= self.no_of_layers:
             raise BaseException(f'not_trainable_no_of_layers hyperparameters must be less than {self.no_of_layers} for MobileNetV2')

@@ -13,6 +13,7 @@ from datetime import datetime
 from sources.classes.mobile_net import MobileNetT
 from sources.classes.mobile_net_v2 import MobileNetV2T
 from sources.scripts import constants as cs
+from tensorboard.plugins.hparams import api as hp
 import os
 
 
@@ -46,18 +47,18 @@ class Training:
         physical_devices = tf.config.list_physical_devices("GPU")
         tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-    def build_model(self, hp):
+    def build_model(self):
         """
         Initializes model with given hyperparameters and returns model class and its object.
 
         :param hp: hyperparameters for model
         """
         if self.model_name == "MobileNet":
-            mobile_net = MobileNetT(hp, self.hp_range)
-            return mobile_net.model
+            mobile_net = MobileNetT(self.hp_range)
+            return mobile_net
         elif self.model_name == "MobileNetV2":
-            mobile_net_v2 = MobileNetV2T(hp, self.hp_range)
-            return mobile_net_v2.model
+            mobile_net_v2 = MobileNetV2T(self.hp_range)
+            return mobile_net_v2
         raise Exception(f"Model {self.model_name} is not recognized")
 
     def get_model_class(self):
@@ -116,24 +117,56 @@ class Training:
             input_pipelines[0].concatenate_pipelines(input_pipelines[i])
         return input_pipelines[0]
 
-    def train_model(self, tuner, pipeline_train, pipeline_val, log_dor_tb):
+    def train_model(self, pipeline_train, pipeline_val, log_dir_tb):
         """
         Actual training after creating model and input pipelines
 
-        :param tuner: model that will be trained
         :param pipeline_train: input pipeline for training
         :param pipeline_val: input pipeline for validation
         """
-        tensorboard_callback = TensorBoard(log_dir=log_dor_tb)
+        # Train the top layer
+        model = self.build_model()
+        base_model = model.base_model
+        final_model = model.final_model
+
+        hyperparameters = {
+            'epochs': model.epochs,
+            'alpha': model.alpha,
+            'depth_multiplier': model.depth_multiplier,
+            'learning_rate_top': model.learning_rate_top,
+            'learning_rate_whole': model.learning_rate_whole,
+            'not_trainable_number_of_layers': model.not_trainable_number_of_layers,
+            'dropout_rate': model.dropout_rate,
+            'batch_size': model.batch_size,
+            'freeze_layers': model.freeze_layers
+        }
+
+        model.compile(whole=False)
+        tensorboard_callback = TensorBoard(log_dir=log_dir_tb + "top")
         early_stop_callback = EarlyStopping(monitor='val_loss', min_delta=0.1, patience=10, verbose=1)
-        callbacks = [tensorboard_callback, early_stop_callback]
-        tuner.search(
-            pipeline_train.dataset,
-            validation_data=pipeline_val.dataset,
-            epochs=self.hp_range["epochs"]["fixed"],
-            batch_size=self.hp_range["batch_size"]["fixed"],
-            callbacks=callbacks
-        )
+        keras_callback = hp.KerasCallback(log_dir_tb + "top", hyperparameters)
+        callbacks = [tensorboard_callback, early_stop_callback, keras_callback]
+        final_model.fit(pipeline_train.dataset,
+                        validation_data=pipeline_val.dataset,
+                        epochs=self.hp_range["epochs"]["fixed"],
+                        batch_size=self.hp_range["batch_size"]["fixed"],
+                        callbacks=callbacks
+                        )
+
+        # Do a round of fine-tuning of the entire model
+        base_model.trainable = True
+        model.freeze_given_layers()
+        model.compile(whole=True)
+        tensorboard_callback = TensorBoard(log_dir=log_dir_tb + "whole")
+        early_stop_callback = EarlyStopping(monitor='val_loss', min_delta=0.1, patience=10, verbose=1)
+        keras_callback = hp.KerasCallback(log_dir_tb + "whole", hyperparameters)
+        callbacks = [tensorboard_callback, early_stop_callback, keras_callback]
+        final_model.fit(pipeline_train.dataset,
+                        validation_data=pipeline_val.dataset,
+                        epochs=self.hp_range["epochs"]["fixed"],
+                        batch_size=self.hp_range["batch_size"]["fixed"],
+                        callbacks=callbacks
+                        )
 
     def run_training(self):
         """
@@ -147,16 +180,8 @@ class Training:
         input_pipeline_val = self.get_input_pipeline(self.val_data_names)
         input_pipeline_val.map(model_class.preprocess_input_pipeline)
 
-        log_dir_json = os.path.join(cs.ROOT_DIR, cs.PATH_TENSORBOARD_LOGS, self.log_dir_name,
-                                    datetime.now().strftime("%Y_%m_%d-%H_%M_%S") + "raw")
-        log_dor_tb = os.path.join(cs.ROOT_DIR, cs.PATH_TENSORBOARD_LOGS, self.log_dir_name,
-                                  datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
-        tuner = keras_tuner.RandomSearch(
-            self.build_model,
-            max_trials=self.max_trials,
-            executions_per_trial=self.executions_per_trial,
-            objective="val_accuracy",
-            directory=log_dir_json,
-            seed=42
-        )
-        self.train_model(tuner, input_pipeline_train, input_pipeline_val, log_dor_tb)
+        # Number of random searches
+        for i in range(self.max_trials):
+            log_dir_tb = os.path.join(cs.ROOT_DIR, cs.PATH_TENSORBOARD_LOGS, self.log_dir_name,
+                                      datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
+            self.train_model(input_pipeline_train, input_pipeline_val, log_dir_tb)
