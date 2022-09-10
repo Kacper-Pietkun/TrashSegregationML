@@ -36,11 +36,20 @@ class MobileNetT(BaseModel):
         self.final_model = Model(inputs=inputs, outputs=self.final_model)
 
     def freeze_given_layers(self):
+        """
+        If it is decided by the hyperparameters then freeze given number of layers of the base model (MobileNet)
+        """
         if self.freeze_layers is True:
             for layer in self.base_model.layers[:self.not_trainable_number_of_layers]:
                 layer.trainable = False
 
     def compile(self, whole=True):
+        """
+        Compilation of the model.
+
+        :param whole: decide which learning rate to use. It is either learning rate for training top layers of the
+        model or learning rate for fine-tuneing the model
+        """
         self.final_model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate_whole if whole is True else self.learning_rate_top),
             loss='sparse_categorical_crossentropy',

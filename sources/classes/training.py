@@ -117,6 +117,7 @@ class Training:
             input_pipelines[0].concatenate_pipelines(input_pipelines[i])
         return input_pipelines[0]
 
+
     def train_model(self, pipeline_train, pipeline_val, log_dir_tb):
         """
         Actual training after creating model and input pipelines
@@ -124,7 +125,7 @@ class Training:
         :param pipeline_train: input pipeline for training
         :param pipeline_val: input pipeline for validation
         """
-        # Train the top layer
+        # Train the top layers
         model = self.build_model()
         base_model = model.base_model
         final_model = model.final_model
@@ -140,7 +141,18 @@ class Training:
             'batch_size': model.batch_size,
             'freeze_layers': model.freeze_layers
         }
+        print(f"Training with:\n"
+              f"epochs: {hyperparameters['epochs']}\n"
+              f"alpha: {hyperparameters['alpha']}\n"
+              f"depth_multiplier: {hyperparameters['depth_multiplier']}\n"
+              f"learning_rate_top: {hyperparameters['learning_rate_top']}\n"
+              f"learning_rate_whole: {hyperparameters['learning_rate_whole']}\n"
+              f"freeze_layers: {hyperparameters['freeze_layers']}\n"
+              f"not_trainable_number_of_layers: {hyperparameters['not_trainable_number_of_layers']}\n"
+              f"dropout_rate: {hyperparameters['dropout_rate']}\n"
+              f"batch_size: {hyperparameters['batch_size']}\n")
 
+        print("Training top layers")
         model.compile(whole=False)
         tensorboard_callback = TensorBoard(log_dir=log_dir_tb + "top")
         early_stop_callback = EarlyStopping(monitor='val_loss', min_delta=0.1, patience=10, verbose=1)
@@ -154,6 +166,7 @@ class Training:
                         )
 
         # Do a round of fine-tuning of the entire model
+        print("\nFine-tuning of the entire model")
         base_model.trainable = True
         model.freeze_given_layers()
         model.compile(whole=True)
@@ -182,6 +195,7 @@ class Training:
 
         # Number of random searches
         for i in range(self.max_trials):
+            print(f"\n---- Starting run {i} ----\n")
             log_dir_tb = os.path.join(cs.ROOT_DIR, cs.PATH_TENSORBOARD_LOGS, self.log_dir_name,
                                       datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
             self.train_model(input_pipeline_train, input_pipeline_val, log_dir_tb)
