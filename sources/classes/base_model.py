@@ -18,6 +18,9 @@ class BaseModel:
         dropout_random = np.random.randint(0, (hp_range_dropout["max"] - hp_range_dropout["min"]) / hp_range_dropout["step"] + 1)
         self.dropout_rate = hp_range_dropout["min"] + dropout_random * hp_range_dropout["step"]
 
+        alpha_random = np.random.randint(0, len(hp_range["alpha"]["choices"]))
+        self.alpha = hp_range["alpha"]["choices"][alpha_random]
+
         learning_rate_top_random = np.random.randint(0, len(hp_range["learning_rate_top"]["choices"]))
         self.learning_rate_top = hp_range["learning_rate_top"]["choices"][learning_rate_top_random]
 
@@ -29,5 +32,3 @@ class BaseModel:
 
         self.epochs = hp_range["epochs"]["fixed"]
         self.batch_size = hp_range["batch_size"]["fixed"]
-        self.alpha = hp_range["alpha"]["fixed"]
-        self.depth_multiplier = hp_range["depth_multiplier"]["fixed"]

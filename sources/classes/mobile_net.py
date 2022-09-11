@@ -23,8 +23,8 @@ class MobileNetT(BaseModel):
             weights="imagenet",
             include_top=False,
             input_shape=(cs.IMAGE_WIDTH, cs.IMAGE_HEIGHT, 3),
-            alpha=self.alpha,
-            depth_multiplier=self.depth_multiplier
+            alpha=self.alpha, # If imagenet weights are being loaded, alpha can be one of`0.25`, `0.50`, `0.75` or `1.0` only
+            # depth_multiplier=.. # when loading imagenet wights depth_multiplier must be equal to the default value (1)
         )
         self.base_model.trainable = False
         inputs = Input(shape=(cs.IMAGE_WIDTH, cs.IMAGE_HEIGHT, 3))

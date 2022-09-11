@@ -133,7 +133,6 @@ class Training:
         hyperparameters = {
             'epochs': model.epochs,
             'alpha': model.alpha,
-            'depth_multiplier': model.depth_multiplier,
             'learning_rate_top': model.learning_rate_top,
             'learning_rate_whole': model.learning_rate_whole,
             'not_trainable_number_of_layers': model.not_trainable_number_of_layers,
@@ -144,7 +143,6 @@ class Training:
         print(f"Training with:\n"
               f"epochs: {hyperparameters['epochs']}\n"
               f"alpha: {hyperparameters['alpha']}\n"
-              f"depth_multiplier: {hyperparameters['depth_multiplier']}\n"
               f"learning_rate_top: {hyperparameters['learning_rate_top']}\n"
               f"learning_rate_whole: {hyperparameters['learning_rate_whole']}\n"
               f"freeze_layers: {hyperparameters['freeze_layers']}\n"
@@ -185,6 +183,8 @@ class Training:
         """
         Carry out one training process (one from all of the combinations, that are run by start() function)
         """
+        log_dir_tb = os.path.join(cs.ROOT_DIR, cs.PATH_TENSORBOARD_LOGS, self.log_dir_name,
+                                  datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
         model_class = self.get_model_class()
 
         input_pipeline_train = self.get_input_pipeline(self.train_data_names)
@@ -193,9 +193,16 @@ class Training:
         input_pipeline_val = self.get_input_pipeline(self.val_data_names)
         input_pipeline_val.map(model_class.preprocess_input_pipeline)
 
-        # Number of random searches
+        self.train_model(input_pipeline_train, input_pipeline_val, log_dir_tb)
+
+    def start(self):
+        """
+        Running each training in different process, because this is the only way that I've found that allows clearing
+        GPU memory after training
+        """
+        # Loop for umber of random searches
         for i in range(self.max_trials):
             print(f"\n---- Starting run {i} ----\n")
-            log_dir_tb = os.path.join(cs.ROOT_DIR, cs.PATH_TENSORBOARD_LOGS, self.log_dir_name,
-                                      datetime.now().strftime("%Y_%m_%d-%H_%M_%S"))
-            self.train_model(input_pipeline_train, input_pipeline_val, log_dir_tb)
+            process = multiprocessing.Process(target=self.run_training)
+            process.start()
+            process.join()

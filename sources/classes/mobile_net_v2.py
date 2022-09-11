@@ -21,7 +21,7 @@ class MobileNetV2T(BaseModel):
             raise BaseException(f'not_trainable_no_of_layers hyperparameters must be less than {self.no_of_layers} for MobileNetV2')
         self.base_model = tf.keras.applications.mobilenet_v2.MobileNetV2(
             input_shape=(cs.IMAGE_WIDTH, cs.IMAGE_HEIGHT, 3),
-            alpha=self.alpha,
+            alpha=self.alpha, # If imagenet weights are being loaded, alpha must be one of `0.35`, `0.50`, `0.75`, `1.0`, `1.3` or `1.4` only
             include_top=False,
             weights="imagenet",
             pooling="avg"
