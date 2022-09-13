@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     args1 = {
         'gpu': True,
-        'log_dir_name': os.path.join('MobileNet', 'random_proper_tf_2_aug_scale_1_train_similar'),
+        'log_dir_name': os.path.join('MobileNet', 'random_proper_tf_1_aug_scale_1_train_similar'),
         'model': 'MobileNet',
         'train_data': ['augmented_similar'],  # , 'augmented_taco', 'augmented_search_engine', 'augmented_garythung'
         'val_data': ['raw_user'],
@@ -20,7 +20,7 @@ if __name__ == "__main__":
             'height': cs.IMAGE_HEIGHT,
             'width': cs.IMAGE_WIDTH
         },
-        'max_trials': 1,
+        'max_trials': 134,
         'executions_per_trial': 1,
         'hp_range': {
             'alpha':                            {'choices': [0.25, 0.5, 0.75, 1.0]},
@@ -33,11 +33,11 @@ if __name__ == "__main__":
             'dropout_rate':                     {'min': 0, 'max': 0.8, 'step': 0.05},
         }
     }
-    # args.append(args1)
+    args.append(args1)
 
     args2 = {
         'gpu': True,
-        'log_dir_name': os.path.join('MobileNetV2', 'test'),
+        'log_dir_name': os.path.join('MobileNetV2', 'random_proper_tf_2_aug_scale_1_train_similar'),
         'model': 'MobileNetV2',
         'train_data': ['augmented_similar'],  # , 'augmented_taco', 'augmented_search_engine', 'augmented_garythung'
         'val_data': ['raw_user'],
@@ -45,11 +45,11 @@ if __name__ == "__main__":
             'height': cs.IMAGE_HEIGHT,
             'width': cs.IMAGE_WIDTH
         },
-        'max_trials': 4,
+        'max_trials': 134,
         'executions_per_trial': 1,
         'hp_range': {
             'alpha':                            {'choices': [0.35, 0.5, 0.75, 1.0, 1.3, 1.4]},
-            'epochs':                           {'fixed': 4},
+            'epochs':                           {'fixed': 100},
             'batch_size':                       {'fixed': 32},
             'learning_rate_top':                {'choices': [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1]},
             'learning_rate_whole':              {'choices': [1e-6, 1e-5]},
@@ -58,7 +58,7 @@ if __name__ == "__main__":
             'dropout_rate':                     {'min': 0, 'max': 0.8, 'step': 0.05},
         }
     }
-    args.append(args2)
+    # args.append(args2)
 
     for arg in args:
         training = Training(arg)
