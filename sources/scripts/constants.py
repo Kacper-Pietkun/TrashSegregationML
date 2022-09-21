@@ -26,7 +26,7 @@ PATH_AUGMENTED_DATASET_USER = r'resources\augmented_datasets\dataset_test'
 PATH_TENSORBOARD_LOGS = r'tensorboard_logs'
 
 # Trained models
-PATH_BEST_MODELS = r'resources\best_models'
+PATH_SAVED_MODELS = r'resources\models'
 
 # Names of the trash folders
 CLASS_BIODEGRADABLE = 'bio'

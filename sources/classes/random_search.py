@@ -1,9 +1,3 @@
-import os
-from sources.scripts import constants as cs
-from sources.classes.mobile_net import MobileNetT
-import keras_tuner
-from scikeras.wrappers import KerasClassifier, KerasRegressor
-from sklearn.model_selection import RandomizedSearchCV
 from keras.callbacks import EarlyStopping
 import tensorflow as tf
 from sources.classes.input_pipeline import InputPipeline
@@ -15,13 +9,15 @@ from sources.classes.mobile_net_v2 import MobileNetV2T
 from sources.scripts import constants as cs
 from tensorboard.plugins.hparams import api as hp
 import os
+import pickle
 
 
-class Training:
+class RandomSearch:
 
     def __init__(self, args):
         """
-        Training class is responsible for carrying out process of training a model.
+        RandomSearch class is responsible for carrying out process of hyper-parameter optimization using random search
+        technique.
         :param args: dictionary that contains crucial information for training process ie. model name, used datasets
         (for train and validation), hyperparameters, name of the logging directory, whether to use GPU for training,
         image properties (width, heihgt)
@@ -35,8 +31,8 @@ class Training:
             'width': args['image']['width']
         }
         self.max_trials = args['max_trials']
-        self.executions_per_trial = args['executions_per_trial']
         self.log_dir_name = args['log_dir_name']
+        self.save_model_dir_name = args['save_model_dir_name']
         if args['gpu'] is True:
             self.configure_training_for_gpu()
 
@@ -117,8 +113,7 @@ class Training:
             input_pipelines[0].concatenate_pipelines(input_pipelines[i])
         return input_pipelines[0]
 
-
-    def train_model(self, pipeline_train, pipeline_val, log_dir_tb):
+    def train_model(self, pipeline_train, pipeline_val, log_dir_tb, save_last_model, log_to_tensorboard):
         """
         Actual training after creating model and input pipelines
 
@@ -155,7 +150,10 @@ class Training:
         tensorboard_callback = TensorBoard(log_dir=log_dir_tb + "top")
         early_stop_callback = EarlyStopping(monitor='val_loss', min_delta=0.1, patience=10, verbose=1)
         keras_callback = hp.KerasCallback(log_dir_tb + "top", hyperparameters)
-        callbacks = [tensorboard_callback, early_stop_callback, keras_callback]
+        if log_to_tensorboard is True:
+            callbacks = [tensorboard_callback, early_stop_callback, keras_callback]
+        else:
+            callbacks = [early_stop_callback]
         final_model.fit(pipeline_train.dataset,
                         validation_data=pipeline_val.dataset,
                         epochs=self.hp_range["epochs"]["fixed"],
@@ -171,15 +169,20 @@ class Training:
         tensorboard_callback = TensorBoard(log_dir=log_dir_tb + "whole")
         early_stop_callback = EarlyStopping(monitor='val_loss', min_delta=0.1, patience=10, verbose=1)
         keras_callback = hp.KerasCallback(log_dir_tb + "whole", hyperparameters)
-        callbacks = [tensorboard_callback, early_stop_callback, keras_callback]
+        if log_to_tensorboard is True:
+            callbacks = [tensorboard_callback, early_stop_callback, keras_callback]
+        else:
+            callbacks = [early_stop_callback]
         final_model.fit(pipeline_train.dataset,
                         validation_data=pipeline_val.dataset,
                         epochs=self.hp_range["epochs"]["fixed"],
                         batch_size=self.hp_range["batch_size"]["fixed"],
                         callbacks=callbacks
                         )
+        if save_last_model is True:
+            final_model.save(os.path.join(cs.ROOT_DIR, cs.PATH_SAVED_MODELS, self.save_model_dir_name))
 
-    def run_training(self):
+    def run_training(self, save_last_model, log_to_tensorboard):
         """
         Carry out one training process (one from all of the combinations, that are run by start() function)
         """
@@ -193,9 +196,9 @@ class Training:
         input_pipeline_val = self.get_input_pipeline(self.val_data_names)
         input_pipeline_val.map(model_class.preprocess_input_pipeline)
 
-        self.train_model(input_pipeline_train, input_pipeline_val, log_dir_tb)
+        self.train_model(input_pipeline_train, input_pipeline_val, log_dir_tb, save_last_model, log_to_tensorboard)
 
-    def start(self):
+    def start(self, save_last_model=False, log_to_tensorboard=False):
         """
         Running each training in different process, because this is the only way that I've found that allows clearing
         GPU memory after training
@@ -203,6 +206,6 @@ class Training:
         # Loop for umber of random searches
         for i in range(self.max_trials):
             print(f"\n---- Starting run {i} ----\n")
-            process = multiprocessing.Process(target=self.run_training)
+            process = multiprocessing.Process(target=self.run_training, args=(save_last_model, log_to_tensorboard))
             process.start()
             process.join()
