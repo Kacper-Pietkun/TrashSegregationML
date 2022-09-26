@@ -11,7 +11,7 @@ if __name__ == "__main__":
     args = [{
         'gpu': True,
         'log_dir_name': 'no_log',
-        'save_model_dir_name': 'my_model.h5',
+        'save_model_name': 'model_1',
         'model': 'MobileNetV2',
         # 'train_data': ['augmented_similar', 'augmented_taco', 'augmented_search_engine', 'augmented_garythung'],
         'train_data': ['augmented_similar'],

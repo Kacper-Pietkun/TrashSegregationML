@@ -12,7 +12,8 @@ if __name__ == "__main__":
 
     args1 = {
         'gpu': True,
-        'log_dir_name': os.path.join('MobileNet', 'random_proper_tf_3_aug_scale_1_train_all'),
+        'log_dir_name': os.path.join('MobileNet', 'random_proper_tf_4_aug_scale_3_train_all'),
+        'save_model_name': 'none',
         'model': 'MobileNet',
         'train_data': ['augmented_similar', 'augmented_taco', 'augmented_search_engine', 'augmented_garythung'],
         'val_data': ['raw_user'],
@@ -20,7 +21,7 @@ if __name__ == "__main__":
             'height': cs.IMAGE_HEIGHT,
             'width': cs.IMAGE_WIDTH
         },
-        'max_trials': 29,
+        'max_trials': 5,
         'executions_per_trial': 1,
         'hp_range': {
             'alpha':                            {'choices': [0.25, 0.5, 0.75, 1.0]},
@@ -37,8 +38,8 @@ if __name__ == "__main__":
 
     args2 = {
         'gpu': True,
-        'log_dir_name': os.path.join('MobileNetV2', 'random_proper_tf_4_aug_scale_1_train_all'),
-        'save_model_dir_name': 'none',
+        'log_dir_name': os.path.join('MobileNetV2', 'random_proper_tf_5_aug_scale_3_train_all'),
+        'save_model_name': 'none',
         'model': 'MobileNetV2',
         'train_data': ['augmented_similar', 'augmented_taco', 'augmented_search_engine', 'augmented_garythung'],
         'val_data': ['raw_user'],
@@ -46,7 +47,7 @@ if __name__ == "__main__":
             'height': cs.IMAGE_HEIGHT,
             'width': cs.IMAGE_WIDTH
         },
-        'max_trials': 15,
+        'max_trials': 37,
         'hp_range': {
             'alpha':                            {'choices': [0.35, 0.5, 0.75, 1.0, 1.3, 1.4]},
             'epochs':                           {'fixed': 100},

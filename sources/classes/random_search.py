@@ -32,7 +32,7 @@ class RandomSearch:
         }
         self.max_trials = args['max_trials']
         self.log_dir_name = args['log_dir_name']
-        self.save_model_dir_name = args['save_model_dir_name']
+        self.save_model_name = args['save_model_name']
         if args['gpu'] is True:
             self.configure_training_for_gpu()
 
@@ -113,6 +113,48 @@ class RandomSearch:
             input_pipelines[0].concatenate_pipelines(input_pipelines[i])
         return input_pipelines[0]
 
+    def save_model(self, model):
+        """
+        Save given model on disk in different formats. Standard format without any compression. TFlite format without
+        any optimization. TFlite format with float16 dtype in order to increase compression. TFlite opitimized format
+        with even further compression to decrease model's size even more. There is a trade off between model's size and
+        its accuracy.
+
+        :param model: model that will be saved on disk
+        """
+        # Save model to .h5 format
+        model_extension = '.h5'
+        model_name = self.save_model_name + model_extension
+        path = os.path.join(cs.ROOT_DIR, cs.PATH_SAVED_MODELS, model_name)
+        model.save(path)
+
+        # Save model with standard tflite model compression
+        model_extension = '_standard.tflite'
+        model_name = self.save_model_name + model_extension
+        path = os.path.join(cs.ROOT_DIR, cs.PATH_SAVED_MODELS, model_name)
+        tf_lite_converter = tf.lite.TFLiteConverter.from_keras_model(model)
+        tflite_model = tf_lite_converter.convert()
+        open(path, 'wb').write(tflite_model)
+
+        # Save model with float16 tflite model compression
+        model_extension = '_float_16.tflite'
+        model_name = self.save_model_name + model_extension
+        path = os.path.join(cs.ROOT_DIR, cs.PATH_SAVED_MODELS, model_name)
+        tf_lite_converter = tf.lite.TFLiteConverter.from_keras_model(model)
+        tf_lite_converter.optimizations = [tf.lite.Optimize.DEFAULT]
+        tf_lite_converter.target_spec.supported_types = [tf.float16]
+        tflite_model = tf_lite_converter.convert()
+        open(path, 'wb').write(tflite_model)
+
+        # Save model with optimized tflite model compression
+        model_extension = '_optimized.tflite'
+        model_name = self.save_model_name + model_extension
+        path = os.path.join(cs.ROOT_DIR, cs.PATH_SAVED_MODELS, model_name)
+        tf_lite_converter = tf.lite.TFLiteConverter.from_keras_model(model)
+        tf_lite_converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
+        tflite_model = tf_lite_converter.convert()
+        open(path, 'wb').write(tflite_model)
+
     def train_model(self, pipeline_train, pipeline_val, log_dir_tb, save_last_model, log_to_tensorboard):
         """
         Actual training after creating model and input pipelines
@@ -180,7 +222,7 @@ class RandomSearch:
                         callbacks=callbacks
                         )
         if save_last_model is True:
-            final_model.save(os.path.join(cs.ROOT_DIR, cs.PATH_SAVED_MODELS, self.save_model_dir_name))
+            self.save_model(final_model)
 
     def run_training(self, save_last_model, log_to_tensorboard):
         """
