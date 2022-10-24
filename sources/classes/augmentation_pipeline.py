@@ -53,13 +53,14 @@ class AugmentationPipeline:
 
         :param class_name: class directory name
         """
-        multiplier_based_on_class = {
-            'bio': 9,
-            'glass': 11,
-            'mixed': 9,
-            'paper': 8,
-            'plastic_metal': 5
-        }
-        multiplier = multiplier_based_on_class[class_name]
-        number = self.images_original_count * multiplier if self.images_original_count <= 400 else self.images_original_count
+        # multiplier_based_on_class = {
+        #     'bio': 9,
+        #     'glass': 11,
+        #     'mixed': 9,
+        #     'paper': 8,
+        #     'plastic_metal': 5
+        # }
+        # multiplier = multiplier_based_on_class[class_name]
+        # number = self.images_original_count * multiplier if self.images_original_count <= 400 else self.images_original_count
+        number = 1500
         return number

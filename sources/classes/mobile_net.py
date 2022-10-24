@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from sources.classes.base_model import BaseModel
-from tensorflow.keras.layers import Dense, Reshape, GlobalAveragePooling2D, Input, Dropout
+from tensorflow.keras.layers import Dense, Reshape, GlobalAveragePooling2D, Input, Dropout, RandomFlip, RandomContrast, RandomBrightness
 import sources.scripts.constants as cs
 
 
@@ -28,7 +28,10 @@ class MobileNetT(BaseModel):
         )
         self.base_model.trainable = False
         inputs = Input(shape=(cs.IMAGE_WIDTH, cs.IMAGE_HEIGHT, 3))
-        self.final_model = self.base_model(inputs, training=False)
+        augmented = RandomFlip("horizontal_and_vertical")(inputs)
+        augmented = RandomContrast(0.2)(augmented)
+        augmented = RandomBrightness(0.2, value_range=(-1, 1))(augmented)
+        self.final_model = self.base_model(augmented, training=False)
         self.final_model = GlobalAveragePooling2D()(self.final_model)
         self.final_model = Dropout(self.dropout_rate)(self.final_model)
         self.final_model = Dense(units=5, activation='softmax')(self.final_model)
