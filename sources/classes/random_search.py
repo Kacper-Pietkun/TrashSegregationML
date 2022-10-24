@@ -109,6 +109,8 @@ class RandomSearch:
                 input_pipelines.append(self.get_actual_input_pipeline(cs.PATH_RAW_DATASET_USER))
             elif data_name == 'augmented_user':
                 input_pipelines.append(self.get_actual_input_pipeline(cs.PATH_AUGMENTED_DATASET_USER))
+            elif data_name == 'raw_real_test':
+                input_pipelines.append(self.get_actual_input_pipeline(cs.PATH_RAW_DATASET_REAL_TEST))
         for i in range(1, len(input_pipelines)):
             input_pipelines[0].concatenate_pipelines(input_pipelines[i])
         return input_pipelines[0]

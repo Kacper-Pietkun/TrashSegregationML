@@ -14,6 +14,7 @@ PATH_RAW_DATASET_SEARCH_ENGINE = r'resources\loaded_datasets\dataset_search_engi
 PATH_RAW_DATASET_SIMILAR = r'resources\loaded_datasets\dataset_similar'
 PATH_RAW_DATASET_TACO = r'resources\loaded_datasets\dataset_taco'
 PATH_RAW_DATASET_USER = r'resources\loaded_datasets\dataset_test'
+PATH_RAW_DATASET_REAL_TEST = r'resources\loaded_datasets\dataset_real_test'
 
 # Raw, augmented datasets
 PATH_AUGMENTED_DATASET_GARYTHUNG = r'resources\augmented_datasets\dataset_garythung'
